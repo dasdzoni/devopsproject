@@ -1,0 +1,4 @@
+- name: reload sysctl
+  become: true
+#  become_user: root
+  shell: "sysctl --system"

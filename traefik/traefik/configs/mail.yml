@@ -1,0 +1,25 @@
+http:
+  routers:
+    mail:
+      rule: Host(`mail.dasdzoni.com`)
+      tls:
+        certresolver:
+          letsencrypt
+      service: mail
+      entryPoints:
+        - https
+      middlewares:
+        - mail-whitelist
+
+  middlewares:
+    mail-whitelist:
+      ipWhiteList:
+        sourceRange:
+          - "10.100.94.1/24"
+          - "178.212.88.249"
+
+  services:
+    mail:
+      loadBalancer:
+        servers:
+          - url: https://10.100.100.11

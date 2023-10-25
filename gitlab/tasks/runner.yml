@@ -1,0 +1,27 @@
+- name: Download repository
+  get_url:
+    url: "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh"
+    dest: "/root/script.deb.sh"
+    mode: 'u+rwx,g+rw,o+rw'
+
+- name: Add repository
+  shell: /root/script.deb.sh
+  args:
+    executable: /bin/bash
+
+- name: install packages
+  apt:
+    name:
+      - gitlab-runner
+    state: present
+
+- name: add gitlab-runner to docker group
+  ansible.builtin.user:
+    name: gitlab-runner
+    groups: docker
+
+- name: ensure runner is started and enabled at boot
+  ansible.builtin.systemd:
+    name: gitlab-runner
+    state: started
+    enabled: yes

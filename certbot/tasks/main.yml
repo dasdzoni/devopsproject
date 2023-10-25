@@ -1,0 +1,46 @@
+- name: install packages
+  become: true
+  ansible.builtin.apt:
+    update_cache: yes
+    name:
+      - certbot
+      - python3-certbot-dns-digitalocean
+    state: present
+
+- name: certbot
+  become: true
+  ansible.builtin.copy:
+    src: certbot
+    dest: /root/
+    owner: root
+    group: root
+    mode: '700'
+
+- name: service
+  become: true
+  ansible.builtin.copy:
+    src: files/certbot.service
+    dest: /etc/systemd/system/certbot.service
+    owner: root
+    group: root
+    mode: '644'
+
+- name: timer
+  become: true
+  ansible.builtin.copy:
+    src: files/certbot.timer
+    dest: /etc/systemd/system/certbot.timer
+    owner: root
+    group: root
+    mode: '644'
+
+- name: ensure certbot.timer is started and enabled at boot
+  become: true
+  ansible.builtin.systemd:
+    name: certbot.timer
+    state: started
+    enabled: yes
+
+- name: run get-certs
+  become: true
+  command: "/root/certbot/get-certs.sh"

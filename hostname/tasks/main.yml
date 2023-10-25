@@ -1,0 +1,16 @@
+- name: set hostname
+  ansible.builtin.hostname:
+    name: ""
+  become: true
+
+- name: localhost
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: 127.0.0.1 localhost.localdomain localhost
+  become: true
+
+- name: localhost
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: 
+  become: true

@@ -1,0 +1,96 @@
+- name: Create /etc/apt/keyrings directory
+  become: true
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+#- name: Download Docker GPG key
+#  become: true
+#  shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+- name: Download Docker GPG key
+  become: true
+  get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.gpg
+    mode: 0644
+
+
+#- name: Import Docker GPG key
+#  become: true
+#  command: sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+#- name: Set permissions for Docker GPG key
+#  become: true
+#  file:
+#    path: /etc/apt/keyrings/docker.gpg
+#    mode: '0644'
+
+- name: Add Docker repository to sources.list.d
+  become: true
+  command: |
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+#- name : Add Docker Repository
+#  become: true
+#  apt_repository:
+#    filename: docker.gpg
+#    repo: 'deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable' 
+
+- name: install docker packages
+  become: true
+  ansible.builtin.apt:
+    update_cache: yes   # equivalent to 'pacman -Sy'
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+
+- name: /etc/docker directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/docker
+    state: directory
+    owner: root
+    group: root
+    mode: '755'
+
+- name: daemon.json
+  become: true
+  ansible.builtin.copy:
+    src: files/daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: '644'
+  notify: restart docker
+
+- name: ensure Docker is started and enabled at boot
+  become: true
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: docker sdk  # Needed for checkmk Docker integration
+  become: true
+  ansible.builtin.apt:
+    update_cache: yes
+    name: python3-docker
+    state: present
+
+- name: install docker-compose
+  become: true
+  ansible.builtin.apt:
+    update_cache: yes
+    name: 
+      - docker-compose
+      - docker-compose-plugin
+    state: present
+  notify: restart docker
+
+# alternative way to install docker-compose
+#- include_tasks: docker-compose.yml
+
+- include_tasks: prune.yml

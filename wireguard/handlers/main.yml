@@ -1,0 +1,3 @@
+- name: restart wg-dasdzoni
+  become: true
+  systemd: "name=wg-quick@wg-dasdzoni.service state=restarted"

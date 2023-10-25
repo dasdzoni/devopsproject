@@ -1,0 +1,5 @@
+[main]
+10.1.101.7
+
+[all:vars]
+ansible_user=n-pavlovic
